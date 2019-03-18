@@ -1,0 +1,5 @@
+http://kangspace.org:8882/wget?url=https://product-downloads.atlassian.com/software/confluence/downloads/atlassian-confluence-6.13.0-x64.exe
+rm -f /usr/soft/public/atlassian-confluence-6.13.0-x64.exe
+wget_webserver
+
+nohup /usr/go_workspace/bin/wget_webserver > /usr/go_workspace/bin/_wget_webserver.log &

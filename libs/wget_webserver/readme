@@ -1,0 +1,14 @@
+ Useage: wget_webserver -p -path -dp -b
+ 	   -p  http port ,default: 8882
+	   -path file save path,default: /usr/soft/public/
+	   -dp file download path,default: https://dl.kangspace.org/dl/
+	   -b page banner, default: KangSpace.org
+	   -proxy http proxy, default: nil
+ e.g.:wget_webserver -p 8883 -path /usr/soft/ -dp https://dl.kangspace.org/dl/ -b KanfSpace.org
+ WebURL :
+ 	1. wget to remote server return upload url
+ 		http:localhost:8882/wget?url=http://xxx.com/x.x
+	2. download instagram shared resource
+ 		http:localhost:8882/ins-get?url=https://www.instagram.com/p/Brx04JWHqfS/
+	3. get remote resource
+ 		http:localhost:8882/http-get?url=http://.jpg

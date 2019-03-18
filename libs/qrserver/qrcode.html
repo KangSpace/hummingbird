@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QRCode</title>
+    <style type="text/css">
+        html, textarea,div,label,img{
+            padding: 0;
+            margin: 0;
+            border: none;
+        }
+        .container{
+            display: inline-block;
+            min-width: 300px;
+            height: 300px;
+            margin: 20px;
+        }
+        .float_l{
+            float: left;
+        }
+        .border1px{
+            border: 1px solid #cecece;
+        }
+        .radio4px{
+            border-radius: 4px 4px 0 0;
+        }
+        .title{
+            display: block;
+            background-color: darkgray;
+            color: #fff;
+            padding: 0 10px;
+        }
+        .input_textarea{
+            padding: 2px;
+            height: 100%;
+        }
+        .input_textarea textarea{
+            width: calc(100% - 3px);
+            height: calc(90% - 3px);
+        }
+        .code_container {
+            width: 200px;
+            height:200px;
+            margin: 40px auto;
+            background-color: #ffffff;
+        }
+        .qrImg{
+            background: url("data:image/gif;base64,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")
+                        center no-repeat;
+            width: 100%;
+            height: 100%;
+        }
+        .hidden{
+            display: none;
+        }
+        .tip_container {
+            vertical-align: middle;
+            text-align: center;
+            margin-top: 100px;
+        }
+        .red_color{
+            color: #ff0000;
+        }
+    </style>
+</head>
+<body>
+<h2>QRCode</h2>
+<div>
+    <div class="container float_l border1px radio4px">
+        <label class="title radio4px">Input Your Text Here</label>
+        <div class="input_textarea">
+            <textarea name="qrText" placeholder="Input Your Text Here..."></textarea>
+        </div>
+    </div>
+    <div  class="container border1px radio4px">
+        <label class="title radio4px">QRCode Here</label>
+        <div id="codeContainer" class="code_container">
+            <!--http://www.20dot.com/static/UVJDT0RFXzE0OTYyMDA3Mjg=.png-->
+            <div class="tip_container">no data input !</div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="http://www.20dot.com/js/jquery.min.js"></script>
+<script>
+    $(function () {
+        getCodeListener();
+    });
+    //是否正在输入
+    var isTexting = false;
+    function getCodeListener() {
+        var $text = $("[name=qrText]");
+        $text.delegate($text,"keyup",function() {
+            if (!isTexting){
+                isTexting = true;
+                setTimeout(function () {
+                    isTexting = false;
+                    getCode($text.val());
+                }, 500);
+            }
+        });
+    }
+    function getCode_(data) {
+        if(!data) return;
+        var url = "http://20dot.com/qrcode?_="+(new Date().getTime())+"&data="+data;
+        $("#remoteIfm").attr("src",url);
+    }
+
+    function remoteIfmLoadFn(){
+        var jsonStr = $("#remoteIfm")[0].contentWindow.document.body.innerHTML;
+        console.log(jsonStr);
+        appendQRCode(eval(jsonStr));
+    }
+    function getCode(data) {
+        if(!data) return;
+        $.ajax({//20dot.com
+            url:"http://127.0.0.1:8881/qrcode?_="+(new Date().getTime()),
+            data:{data:data},
+            type:"POST",
+            dataType:"json",
+//            jsonp:"appendQRCode",
+//            jsonpCallback:"appendQRCode",
+            success:function (data) {
+                console.log(data);
+                if(data && data.Code == 1){
+                    appendQRCode(data.Data.name)
+                }
+            },
+            error:function (x,s,e) {
+                appendErrMsg(x.responseText);
+                console.error(e)
+            }
+        });
+    }
+    function appendQRCode(data){
+        if(!data) return;
+        var img = "<img class='qrImg' src='http://www.20dot.com/static/"+data+"' title='"+data+"' onerror='imgErr()'/>"
+        $("#codeContainer").html(img);
+    }
+    function appendNullImg(){
+        var img = "<img class='qrImg' src=''/>"
+        $("#codeContainer").html(img);
+    }
+    function imgErr() {
+        appendErrMsg("img load error!");
+    }
+    //错误提示
+    function appendErrMsg(msg){
+        var html = '<div class="tip_container red_color">'+msg+'</div>'
+        $("#codeContainer").html(html)
+    }
+</script>
+<!--<iframe id="remoteIfm" class="hidden" src="about:blank" onload="remoteIfmLoadFn()"></iframe>-->
+</body>
+</html>
