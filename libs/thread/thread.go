@@ -18,7 +18,7 @@ import (
 	"sync"
 	"time"
 
-	"20dot.com/hummingbird/libs/trycatch"
+	"github.com/hummingbird/libs/trycatch"
 )
 
 //

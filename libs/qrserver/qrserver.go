@@ -15,10 +15,10 @@ import (
 	"strconv"
 	"time"
 
-	"20dot.com/hummingbird/libs/file"
-	"20dot.com/hummingbird/libs/qrcode"
-	"20dot.com/hummingbird/libs/util"
-	"20dot.com/hummingbird/libs/webserver"
+	"github.com/hummingbird/libs/file"
+	"github.com/hummingbird/libs/qrcode"
+	"github.com/hummingbird/libs/util"
+	"github.com/hummingbird/libs/webserver"
 )
 
 //default port 8881

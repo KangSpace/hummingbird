@@ -20,10 +20,10 @@
 package main
 
 import (
-	"20dot.com/hummingbird/libs/httpproxy"
-	"20dot.com/hummingbird/libs/instagram"
-	"20dot.com/hummingbird/libs/trycatch"
-	"20dot.com/hummingbird/libs/webserver"
+	"github.com/hummingbird/libs/httpproxy"
+	"github.com/hummingbird/libs/instagram"
+	"github.com/hummingbird/libs/trycatch"
+	"github.com/hummingbird/libs/webserver"
 	"bufio"
 	"flag"
 	"fmt"

@@ -10,7 +10,7 @@ import (
 	"image/draw"
 	"time"
 
-	"20dot.com/hummingbird/libs/util"
+	"github.com/hummingbird/libs/util"
 	"code.google.com/p/graphics-go/graphics"
 )
 

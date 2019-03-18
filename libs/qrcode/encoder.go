@@ -11,8 +11,8 @@ import (
 	"regexp"
 	"time"
 
-	"20dot.com/hummingbird/libs/myimage"
-	"20dot.com/hummingbird/libs/util"
+	"github.com/hummingbird/libs/myimage"
+	"github.com/hummingbird/libs/util"
 )
 
 //编码器接口
