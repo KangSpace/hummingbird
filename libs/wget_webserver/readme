@@ -12,3 +12,6 @@
  		http:localhost:8882/ins-get?url=https://www.instagram.com/p/Brx04JWHqfS/
 	3. get remote resource
  		http:localhost:8882/http-get?url=http://.jpg
+
+complie:
+    go build gihub.com.com/hummingbird/libs/wget_webserver

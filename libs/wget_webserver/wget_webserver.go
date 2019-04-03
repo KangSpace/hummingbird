@@ -101,8 +101,8 @@ func welcomeHandle(w http.ResponseWriter, req *http.Request) {
 	str := "<pre>wget server started !</pre>" +
 		"<pre>Usage:" +
 		"<p style='color:red'>" + req.Host + "/wget?url=xxx</p>" +//+ req.RequestURI
-		"<p style='color:red'>" + req.Host + "/http-get?url=xxx</span></p>" +
-		"<p style='color:red'>" + req.Host + "/ins-get?url=xxx</span></p>" +
+		"<p style='color:red'><span>" + req.Host + "/http-get?url=xxx</span></p>" +
+		"<p style='color:red'><span>" + req.Host + "/ins-get?url=xxx</span></p>" +
 		"</pre>"
 	w.Write([]byte(str))
 }
@@ -236,7 +236,7 @@ func wget_exec_command(w http.ResponseWriter, url string) {
 	if len(url) > 0 && linenum >= 5 {
 		var downloadUrl = downloadPath + fileName
 		//输出下载链接
-		var downloadUrlHtml = "<div class='downad_link_div' style='margin:35px 0;'>Download: <a target='_blank' href='" + downloadUrl + "'>" + downloadUrl + "</div>"
+		var downloadUrlHtml = "<div class='downad_link_div' style='margin:35px 0;'>Download: <a target='_blank' href='" + downloadUrl + "'>" + downloadUrl + "</a></div>"
 		w.Write([]byte(downloadUrlHtml))
 	} else if len(url) == 0 {
 		//输出调用格式
