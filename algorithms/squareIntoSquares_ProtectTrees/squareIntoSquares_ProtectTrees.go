@@ -30,44 +30,86 @@ decompose 50 returns "1,3,5,8,49"
 decompose 4  returns "Nothing"
 Hint
 Very often xk will be n-1.
- */
+*/
 package main
 
 import (
 	"fmt"
+	"math"
 )
 
 func Decompose(n int64) []int64 {
-	return recurse(n * n, n - 1)
+	return recurse(n*n, n-1)
+	//return recurse(n)
 }
 
+
 func recurse(s, i int64) []int64 {
-	fmt.Println("s:",s,",i:",i)
-	if s == 0{
+	//fmt.Println("s:", s, ",i:", i)
+	if s == 0 {
 		return []int64{}
 	}
-	if s< 0 || i <= 0{
+	if s < 0 || i <= 0 {
 		return nil
 	}
-	var sub = make([]int64, 0)
 	for ; i > 0; i-- {
-		sub_ := recurse(s - i * i, i - 1)
-		fmt.Println(sub_)
+		s1 := s-i*i
+		s2 := int64(math.Min(float64(i-1), math.Sqrt(float64(s1))))
+		sub_ := recurse(s1, s2)
 		if sub_ != nil {
-			sub = append(sub_, i)
-			break;
+			sub_ = append(sub_, i)
+			return sub_
 		}
 	}
-	return sub
+	return nil
+}
+func recurse2(i int64) []int64 {
+	r := i * i
+	n := i - 1
+	b := false
+	stack := make([][]int64, 0)
+	for n > 0 && !b {
+		r2 := r
+		n2 := n
+		for {
+			if r2 == 0 {
+				b = true
+				break
+			}
+			if n2 == 0 {
+				if len(stack) > 0 {
+					r2, n2 = stack[len(stack)-1:][0][0], stack[len(stack)-1:][0][1]
+					stack = stack[:len(stack)-1]
+					n2 -= 1
+				} else {
+					break
+				}
+			}
+			if n2 == 0 {
+				continue
+			}
+			stack = append(stack, []int64{r2, n2})
+			r2 = r2 - n2*n2
+			n2 = int64(math.Min(float64(n2-1), math.Sqrt(float64(r2))))
+		}
+		if b {
+			keys := make([]int64, 0)
+			for i := len(stack) - 1; i >= 0; i-- {
+				keys = append(keys, stack[i][1])
+			}
+			return keys
+		}
+	}
+	return nil
 }
 
 func main() {
 	//[]int64{2, 3, 6}
-	//fmt.Println(Decompose(7))
+	fmt.Println(Decompose(7))
 	//== []int64{1, 3, 5, 8, 49}
 	fmt.Println(Decompose(50))
 	//== []int64{3, 4})
-	//fmt.Println(Decompose(5))
+	fmt.Println(Decompose(5))
 	//== []int64{})
-	//fmt.Println(Decompose(2))
+	fmt.Println(Decompose(2))
 }
