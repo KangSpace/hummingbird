@@ -41,7 +41,7 @@ Median : The median is the number separating the higher half of a data sample fr
 #Hints: Try to optimize your program to avoid timing out.
 
 Memoization can be helpful but it is not mandatory for being successful.
- */
+*/
 package main
 
 import "fmt"
@@ -49,27 +49,49 @@ import "fmt"
 func Part(n int) string {
 	return ""
 }
-func enum(n int) [][]int{
-
-	if n <1 {
+func enum(n int) [][]int {
+	if n < 1 {
 		return nil
 	}
-	enums:=make([][]int,0)
-	for i:= n ;i>0;i--{
-		t:=make([]int,0)
-		t = append(t,i)
-		for j:=i; n-j>0;j++{
-			tn:= n-j
-			if tn-i == 0 {
-				tn =1
+	enums := make([][]int, 0)
+	for i := n; i > 0; i-- {
+		sum := i
+		t := []int{i}
+		for j := i; sum < n; j-- {
+			tn := n - sum
+			if tn > i {
+				tn = i
 			}
-			t = append(t,tn)
+			t = append(t, tn)
+			sum += tn
 		}
-		enums = append(enums,t)
+		enums = append(enums, t)
 	}
 	return enums
 }
-func prod(n int){
+
+/*
+for i:= n ;i>0;i--{
+		sum := i
+		t:=make([]int,0)
+		t = append(t,i)
+		for j:=0; n-i-j>0 && sum < n;j++{
+			tn:= n-i-j
+			if tn > i {
+				tn = i
+			}
+			if sum + tn > n {
+				tn = n -sum
+			}
+			t = append(t,tn)
+			sum += tn
+		}
+		enums = append(enums,t)
+		sum = 0
+	}
+*/
+
+func prod(n int) {
 
 }
 
