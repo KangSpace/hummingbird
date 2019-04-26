@@ -44,60 +44,175 @@ Memoization can be helpful but it is not mandatory for being successful.
 */
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
-func Part(n int) string {
-	return ""
+func Part(n int) string{
+	prods := Prod(n)
+	return fmt.Sprintf("Range: %d Average: %.2f Median: %.2f", prods[len(prods)-1]-prods[0],float64(sum(prods))/float64(len(prods)),Median(prods))
 }
-func enum(n int) [][]int {
-	if n < 1 {
-		return nil
+
+func Median(n []int) float64{
+	if len(n) % 2 ==0{
+		return float64(n[len(n)/2-1]+n[len(n)/2])/2
 	}
-	enums := make([][]int, 0)
-	for i := n; i > 0; i-- {
-		sum := i
-		t := []int{i}
-		for j := i; sum < n; j-- {
-			tn := n - sum
-			if tn > i {
-				tn = i
-			}
-			t = append(t, tn)
-			sum += tn
+	return float64(n[len(n)/2])
+}
+
+func Prod(n int) []int {
+	enums := enum(n, make(map[int][][]int))
+	prods := make(map[int]int, 0)
+	for _, i := range enums {
+		prod := 1;
+		for _, j := range i {
+			prod *= j
 		}
-		enums = append(enums, t)
+		prods[prod]=0
+	}
+	prods_ := make([]int ,0)
+	for i,_ := range prods{
+		prods_ = append(prods_,i)
+	}
+    sort.Ints(prods_)
+	return prods_
+}
+
+func enum(n int, cache map[int][][]int) [][]int {
+	if n == 0 {
+		return [][]int{}
+	}
+	if n == 1 {
+		return [][]int{{1}}
+	}
+	enums := [][]int{{n}}
+	for m := n; m > 0; m-- {
+		r := n - m
+		var fr [][]int
+		if fr_, ok := cache[r]; ok {
+			fr = fr_
+		} else {
+			fr = enum(r, cache)
+			cache[r] = fr
+		}
+		enums = append(enums, accept(fr, []int{m})...)
 	}
 	return enums
 }
-
-/*
-for i:= n ;i>0;i--{
-		sum := i
-		t:=make([]int,0)
-		t = append(t,i)
-		for j:=0; n-i-j>0 && sum < n;j++{
-			tn:= n-i-j
-			if tn > i {
-				tn = i
-			}
-			if sum + tn > n {
-				tn = n -sum
-			}
-			t = append(t,tn)
-			sum += tn
-		}
-		enums = append(enums,t)
-		sum = 0
+func accept(lst [][]int, n []int) [][]int {
+	if len(lst) == 0 {
+		return lst
 	}
-*/
-
-func prod(n int) {
-
+	xs := make([][]int, 0)
+	for _, x := range lst {
+		if max(x) <= n[0] {
+			xs = append(xs, append(n, x...))
+		}
+	}
+	return xs
 }
+func max(x []int) int {
+	max_ := 0
+	for _, i := range x {
+		if i > max_ {
+			max_ = i
+		}
+	}
+	return max_
+}
+func sum(x []int) int {
+	sum_ := 0
+	for _, i := range x {
+		sum_ += i
+	}
+	return sum_
+}
+
+func partAux(s, k int) [][]int {
+	k0 := min(s, k)
+	res := [][]int{}
+	n := k0;
+	var r int
+	for ; n > 0; n-- {
+		r = s - n
+		if r > 0 {
+			arr := partAux(r, n)
+			for i := 0; i < len(arr); i++ {
+				t := arr[i]
+				t = append(t, n)
+				res = append(res, t)
+			}
+		} else {
+			res = append(res, []int{n})
+		}
+		fmt.Println(res)
+	}
+	return res
+}
+//## GOOD
+func ruleAsc(n int) [][]int {
+	res := make([][]int, 0)
+	a := make([]int, n + 1)
+	k := 1
+	a[1] = n
+	for k != 0 {
+		x := a[k - 1] + 1
+		y := a[k] - 1
+		k -= 1
+		for x <= y {
+			a[k] = x
+			y -= x
+			k += 1
+		}
+		a[k] = x + y
+		product := []int{}
+		for j := 0; j <= k; j++ {
+			product = append(product,a[j])
+		}
+		res = append(res, product)
+	}
+	return res
+}
+
+func min (x,y int) int{
+	if x < y {return x} else {return y}
+}
+
 
 func main() {
 	//enum(4) -> [[4],[3,1],[2,2],[2,1,1],[1,1,1,1]] and
-	fmt.Println(enum(4))
-	//enum(5) -> [[5],[4,1],[3,2],[3,1,1],[2,2,1],[2,1,1,1],[1,1,1,1,1]].
-	fmt.Println(enum(5))
+	//fmt.Println(partAux(4, 4))
+	////enum(5) -> [[5],[4,1],[3,2],[3,1,1],[2,2,1],[2,1,1,1],[1,1,1,1,1]].
+	fmt.Println(ruleAsc(5))
+	//util.Cost(func() {
+	//	fmt.Println(ruleAsc(50))
+	//})
+
+	//fmt.Println(partAux(5, 5))
+	//fmt.Println(partAux(50, 50))
+
+	//enum(4) -> [[4],[3,1],[2,2],[2,1,1],[1,1,1,1]] and
+	//fmt.Println(enum(4, make(map[int][][]int)))
+	////enum(5) -> [[5],[4,1],[3,2],[3,1,1],[2,2,1],[2,1,1,1],[1,1,1,1,1]].
+	//fmt.Println(enum(5, make(map[int][][]int)))
+	//util.Cost(func() {
+	//	fmt.Println(enum(50, make(map[int][][]int)))
+	//})
+
+	//fmt.Println(prod(5))
+	/*prodMap := make(map[int]int)
+	prodMap[0]=2
+	prodMap[1]=3
+	prodMap[2]=1
+	prodMap[4]=0
+	fmt.Println(reflect.ValueOf(prodMap).MapKeys())
+	fmt.Println(prodMap)*/
+	//Part(1)
+	//Part(2)
+	//fmt.Println(Part(43))
+	//fmt.Println(Part(1)== "Range: 0 Average: 1.00 Median: 1.00")
+	//fmt.Println(Part(2)== "Range: 1 Average: 1.50 Median: 1.50")
+	//fmt.Println(Part(3)== "Range: 2 Average: 2.00 Median: 2.00")
+
 }
