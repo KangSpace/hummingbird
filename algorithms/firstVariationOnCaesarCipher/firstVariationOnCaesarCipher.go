@@ -42,24 +42,48 @@ and demovingShift(v, 1) returns u.
 #Ref:
 
 Caesar Cipher : http://en.wikipedia.org/wiki/Caesar_cipher
+
+
+Analysis:
+	s: character
+shift: init move seed
+movingShift:
+	ts := s + shift
+    if [A-Z] + shift > 90 {
+      return [A-Z] -> ts = ts - math.floor((ts - 65 ) / 26) * 26
+    }
+	if [a-z] + shift > 122 {
+      return [a-z] -> ts = ts - math.floor((ts - 97 ) / 26) * 26
+    }
+demovingShift:
+	ts := s - shift
+    if [A-Z] - shift < 65 {
+      return [A-Z] -> ts = ts + math.Ceil((65 - ts ) / 26) * 26
+    }
+	if [a-z] + shift < 97 {
+      return [a-z] -> ts = ts + math.Ceil((97 - ts) / 26) * 26
+    }
 */
 package main
 
 import (
 	"fmt"
+	"math"
 	"strings"
 )
 
 func MovingShift(s string, shift int) []string {
-	perLen := len(s)/5 + 1
+	perLen := int(math.Ceil(float64(len(s))/float64(5)))
 	var result []string
 	str := ""
 	for i, s_ := range s[:] {
 		str1 := string(s_)
 		if (s_ >= 65 && s_ <= 90) || (s_ >= 97 && s_ <= 122) {
 			ts := s_ + int32(shift)
-			for ts > 122 {
-				ts = 97 + ts - 122 - 1
+			if s_ >= 65 && s_<=90 && ts >90{
+				ts = ts - (ts - 65 ) / 26 * 26
+			}else if s_ >= 97 && s_<=122 && ts >122{
+				ts = ts - (ts - 97 ) / 26 * 26
 			}
 			str1 = string(ts)
 		}
@@ -81,12 +105,14 @@ func DemovingShift(arr []string, shift int) string {
 		if len(v) == 0 {
 			break
 		}
-		for _, ss := range v[:] {
-			ts := ss
-			if (ss >= 65 && ss <= 90) || (ss >= 97 && ss <= 122) {
+		for _, s_ := range v[:] {
+			ts := s_
+			if (s_ >= 65 && s_ <= 90) || (s_ >= 97 && s_ <= 122) {
 				ts = ts - int32(shift)
-				for ts < 65 || (ts > 90 && ts < 97) {
-					ts = 97 + 65 - ts + 1
+				if s_ >= 65 && s_<=90 && ts <65 {
+					ts = ts + int32(math.Ceil(float64(65 - ts)/ float64(26)) * 26)
+				}else if s_ >= 97 && s_<=122 && ts < 97{
+					ts = ts + int32(math.Ceil(float64(97 - ts)/ float64(26)) * 26)
 				}
 			}
 			str += string(ts)
@@ -99,6 +125,14 @@ func main() {
 	//var sol1 = []string{"T p", "oc ", "iwl", "yo", ""}
 	//var u1 = "S mkx bocod"
 	//fmt.Println(MovingShift(u1,1))
+	//fmt.Println(DemovingShift(sol1,1))
+
+	//var sol1 = []string{"T p", "oc ", "iwl", "yo", ""}
+	//<[]string | len:5, cap:5>: ["Y ONDIQZF!", " hu Azpucl", "r! vca qqn", "fukc mldl ", "gr eqqi;"]
+	var u1 = "O CAPTAIN! my Captain! our fearful trip is done;"
+	fmt.Println(MovingShift(u1,10))
+	var u2 = " uoxIirmoveNreefckgieaoiEcooqo"
+	fmt.Println(MovingShift(u2,2))
 	//fmt.Println(DemovingShift(sol1,1))
 
 	var u = "I should have known that you would have a perfect answer for me!!!"
