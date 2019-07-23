@@ -20,20 +20,20 @@
 package main
 
 import (
-	"github.com/hummingbird/libs/httpproxy"
-	"github.com/hummingbird/libs/instagram"
-	"github.com/hummingbird/libs/trycatch"
-	"github.com/hummingbird/libs/webserver"
 	"bufio"
 	"flag"
 	"fmt"
+	"github.com/hummingbird/libs/instagram"
+	"github.com/hummingbird/libs/proxyhttp"
+	"github.com/hummingbird/libs/trycatch"
+	"github.com/hummingbird/libs/webserver"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
-	"strings"
-	"net/url"
 	"path/filepath"
+	"strings"
 )
 
 //default port 8882
@@ -90,7 +90,7 @@ func main() {
 	//wget download
 	handles.Handle("/wget", http.HandlerFunc(wgetHandle))
 	//instagram shared resource download
-	handles.Handle("/ins-get", http.HandlerFunc((&instagram.InsResourceDownloader{Proxy:proxy}).InsGetHttpHandle))
+	handles.Handle("/ins-get", http.HandlerFunc((&instagram.InsResourceDownloader{Proxy: proxy}).InsGetHttpHandle))
 	handles.Handle("/http-get", http.HandlerFunc(httpGetHandle))
 	server.Run(handles)
 }
@@ -100,7 +100,7 @@ func welcomeHandle(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "text/html;charset=utf-8")
 	str := "<pre>wget server started !</pre>" +
 		"<pre>Usage:" +
-		"<p style='color:red'>" + req.Host + "/wget?url=xxx</p>" +//+ req.RequestURI
+		"<p style='color:red'>" + req.Host + "/wget?url=xxx</p>" + //+ req.RequestURI
 		"<p style='color:red'><span>" + req.Host + "/http-get?url=xxx</span></p>" +
 		"<p style='color:red'><span>" + req.Host + "/ins-get?url=xxx</span></p>" +
 		"</pre>"
@@ -131,15 +131,15 @@ func httpGetHandle(w http.ResponseWriter, req *http.Request) {
 		w.Write([]byte(str))
 		return
 	}
-	_,fileName := filepath.Split(targetUrl.Path)
+	_, fileName := filepath.Split(targetUrl.Path)
 	trycatch.Trycatch(func() {
 		// wget url
-		resp, err := (&(httpproxy.HttpProxy{proxy})).Client().Get(url_)
+		resp, err := (&(proxyhttp.ProxyHttp{proxy})).Client().Get(url_)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("file not found:" + url_+"\n"))
+			w.Write([]byte("file not found:" + url_ + "\n"))
 			w.Write([]byte("error:"))
-			fmt.Fprintln(w,err)
+			fmt.Fprintln(w, err)
 			return
 		}
 
@@ -151,7 +151,7 @@ func httpGetHandle(w http.ResponseWriter, req *http.Request) {
 			w.Header().Set(k, strings.Join(v, ","))
 		}
 		if len(fileName) > 0 {
-			w.Header().Set("Content-disposition","filename="+fileName)
+			w.Header().Set("Content-disposition", "filename="+fileName)
 		}
 		for {
 			var bytes = make([]byte, 1024)
@@ -164,7 +164,7 @@ func httpGetHandle(w http.ResponseWriter, req *http.Request) {
 	}, func(e interface{}) {
 		//w.Write([]byte("error:" + path))
 		w.WriteHeader(http.StatusBadGateway)
-		fmt.Fprint(w,e)
+		fmt.Fprint(w, e)
 	})
 }
 
@@ -190,7 +190,7 @@ func wget_exec_command(w http.ResponseWriter, url string) {
 	var lastFileSpliterIndex = strings.LastIndex(url, "/")
 	var fileName = ""
 	// 过滤掉https:// 的长度
-	if lastFileSpliterIndex > -1 && lastFileSpliterIndex > 7 &&  lastFileSpliterIndex < len(url) {
+	if lastFileSpliterIndex > -1 && lastFileSpliterIndex > 7 && lastFileSpliterIndex < len(url) {
 		fileName = url[lastFileSpliterIndex+1:]
 	}
 	if len(fileName) == 0 {
@@ -246,7 +246,7 @@ func wget_exec_command(w http.ResponseWriter, url string) {
 	//输出下载输入框
 	var downloadInputHtml = "<div style='position: relative;border-collapse: separate;padding: 30px 0;'>" +
 		"<input id='inputurlInp' placeholder='input download url' style='display: inline-block;border-color: #cfdadd;border-radius: 2px;width: 30%;height: 30px;padding: 6px 12px;font-size: 14px;line-height: 1.42857143;color: #555;background-color: #fff;background-image: none;border: 1px solid #cfdadd;box-shadow: none;'>" +
-		"<span class='input-group-btn' style='position: relative;font-size: 0;width: 1%;white-space: nowrap;vertical-align: middle;'>" +//else{return 0} ; return 1;
+		"<span class='input-group-btn' style='position: relative;font-size: 0;width: 1%;white-space: nowrap;vertical-align: middle;'>" + //else{return 0} ; return 1;
 		"<a onclick=\"javascript:var inp = document.getElementById('inputurlInp'); if(inp && inp.value.trim().length){ this.href=location.origin+'/wget?url='+inp.value.trim();};\" _target='blank' type='button' class='btn' style='z-index: 2;margin: 0 10px;display: inline-block;padding: 4px 12px; margin-bottom: 0;font-size: 14px;font-weight: 400;line-height: 1.6;text-align: center;white-space: nowrap;vertical-align: middle;-ms-touch-action: manipulation;touch-action: manipulation;cursor: pointer;-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none;background-image: none;border: 1px solid transparent;border-radius: 4px;background: #3bacf0;color: #fff;'>" +
 		"	Download" +
 		"	</a>" +

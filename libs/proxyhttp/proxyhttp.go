@@ -1,19 +1,19 @@
-//httpProxy get http client or proxyClient
-package httpproxy
+//ProxyHttp get http client or proxyClient
+package proxyhttp
 
 import (
 	"net/http"
 	"net/url"
 )
 
-//HttpProxy
-type HttpProxy struct {
+//ProxyHttp
+type ProxyHttp struct {
 	//proxy server , e.g,: http://127.0.0.1:1880
 	Proxy string
 }
 
 //get proxy http client
-func (downloader *HttpProxy) Client() *http.Client {
+func (downloader *ProxyHttp) Client() *http.Client {
 	var client *http.Client
 	if len(downloader.Proxy) > 0 {
 		proxy := func(_ *http.Request) (*url.URL, error) {

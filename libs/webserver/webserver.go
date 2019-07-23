@@ -11,6 +11,13 @@ type WebServer struct {
 	Addr string
 }
 
+const (
+	ContentTypeHTML  = "text/html;charset=utf-8"
+	ContentTypePlain = "text/plain;charset=utf-8"
+	ContentTypeJSON  = "application/json;charset=utf-8"
+	ContentTypePNG   = "image/png"
+)
+
 // 创建 http Server
 // 	handles : *http.serveMux
 // 	example:
@@ -43,4 +50,19 @@ func SetRequestHeader(w http.ResponseWriter, key string, value string) {
 //设置跨域允许访问
 func SetAccessControlAllowOrgin(w http.ResponseWriter) {
 	SetResponseHeader(w, "Access-Control-Allow-Origin", "*")
+}
+
+//设置返回类型为JSON
+func SetContentTypeJson(w http.ResponseWriter) {
+	SetResponseHeader(w, "Content-Type", ContentTypeJSON)
+}
+
+//设置返回类型为HTML
+func SetContentTypeHtml(w http.ResponseWriter) {
+	SetResponseHeader(w, "Content-Type", ContentTypeHTML)
+}
+
+//设置返回类型为PNG
+func SetContentTypePng(w http.ResponseWriter) {
+	SetResponseHeader(w, "Content-Type", ContentTypePNG)
 }

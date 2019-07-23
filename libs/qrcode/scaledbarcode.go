@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"math"
 )
 
 type wrapFunc func(x, y int) color.Color
@@ -55,12 +54,12 @@ func (bc *intCSscaledBC) CheckSum() int {
 
 // Scale returns a resized barcode with the given width and height.
 // DestImgSize: 生成二维码后宽高
-func Scale(bc BarCode, width, height int) (BarCode, *DestImgSize, error) {
+func Scale(bc BarCode, width, height int, isFill bool) (BarCode, *DestImgSize, error) {
 	switch bc.Metadata().Dimensions {
 	case 1:
 		return scale1DCode(bc, width, height)
 	case 2:
-		return scale2DCode(bc, width, height)
+		return scale2DCode(bc, width, height, isFill)
 	}
 
 	return nil, nil, errors.New("unsupported barcode format")
@@ -79,23 +78,25 @@ func newScaledBC(wrapped BarCode, wrapperFunc wrapFunc, rect image.Rectangle) Ba
 	return result
 }
 
-func scale2DCode(bc BarCode, width, height int) (BarCode, *DestImgSize, error) {
+//缩放二维码，返回输入的width宽度数
+//isFill 是否填充二维码边框
+func scale2DCode(bc BarCode, width, height int, isFill bool) (BarCode, *DestImgSize, error) {
 	orgBounds := bc.Bounds()
 	orgWidth := orgBounds.Max.X - orgBounds.Min.X
 	orgHeight := orgBounds.Max.Y - orgBounds.Min.Y
 	fmt.Println("scale2DCode orginBounds:", orgBounds, " ,width:", width, " ,height:", height)
-
+	modSeed := width / orgWidth
 	//若除不尽,则将width,height补充除尽  && float64(mod)/float64(orgWidth)>=0.5
+	//有边框时,根据输入的width,height获取最大缩放范围的二维码,若有多余,则补充为边框
+	//无边框时,返回最大课缩放范围尺寸
 	if mod := width % orgWidth; mod != 0 {
-		//fmt.Println("mod: ",mod)
-		seed := orgWidth - mod
-		width += seed
-		height += seed
+		if !isFill {
+			width = orgWidth * modSeed
+		}
 	}
-
-	factor := int(math.Min(float64(width)/float64(orgWidth), float64(height)/float64(orgHeight)))
+	height = width
+	factor := modSeed
 	fmt.Println("factor:", factor, " ,width:", width, " ,height:", height, " ,orgWidth:", orgWidth, " ,orgHeight:", orgHeight)
-
 	if factor <= 0 {
 		return nil, nil, fmt.Errorf("can not scale barcode to an image smaller than %dx%d", orgWidth, orgHeight)
 	}

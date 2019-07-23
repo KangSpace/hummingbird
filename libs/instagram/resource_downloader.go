@@ -2,12 +2,12 @@
 package instagram
 
 import (
-	"github.com/hummingbird/libs/httpproxy"
-	"github.com/hummingbird/libs/trycatch"
-	"github.com/hummingbird/libs/webserver"
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/hummingbird/libs/proxyhttp"
+	"github.com/hummingbird/libs/trycatch"
+	"github.com/hummingbird/libs/webserver"
 	"io"
 	"net/http"
 	"strings"
@@ -42,9 +42,9 @@ func (downloader *InsResourceDownloader) InsGetHttpHandle(w http.ResponseWriter,
 		if err == nil {
 			dataStr, _ := data.ToJSONString()
 			w.Write([]byte(dataStr))
-		}else{
+		} else {
 			w.WriteHeader(http.StatusNotFound)
-			fmt.Fprintln(w,err)
+			fmt.Fprintln(w, err)
 		}
 	}, func(e interface{}) {
 		w.WriteHeader(http.StatusBadGateway)
@@ -59,7 +59,7 @@ var scriptSuffix = ";</script>"
 //FetchInsShareDataResources fetch instagram share data resources
 func (downloader *InsResourceDownloader) FetchInsShareDataResources() (*FetchedResource, error) {
 	//resp, err := http.Get(url)
-	resp, err := (&(httpproxy.HttpProxy{downloader.Proxy})).Client().Get(downloader.URL)
+	resp, err := (&(proxyhttp.ProxyHttp{downloader.Proxy})).Client().Get(downloader.URL)
 	if err != nil {
 		return &FetchedResource{}, err
 	}
@@ -101,24 +101,24 @@ func (downloader *InsResourceDownloader) FetchInsShareDataResources() (*FetchedR
 				//fmt.Println("l",l)
 				var tempDisplayResources []DisplayResource
 				for _, rr := range l.Node.DisplayResource {
-					tempDisplayResources = append(tempDisplayResources, DisplayResource{rr.ConfigHeight, rr.ConfigWidth, rr.Src,})
+					tempDisplayResources = append(tempDisplayResources, DisplayResource{rr.ConfigHeight, rr.ConfigWidth, rr.Src})
 				}
-				displayNodes = append(displayNodes, DisplayNode{DisplayResources:tempDisplayResources,
-					VideoProperties:VideoProperties{IsVideo:l.Node.IsVideo,VideoURL:l.Node.VideoURL}})
+				displayNodes = append(displayNodes, DisplayNode{DisplayResources: tempDisplayResources,
+					VideoProperties: VideoProperties{IsVideo: l.Node.IsVideo, VideoURL: l.Node.VideoURL}})
 			}
 		} else {
 			var tempDisplayResources []DisplayResource
 			for _, r := range shortcodeMedia.DisplayResources {
 				tempDisplayResources = append(tempDisplayResources, DisplayResource{r.ConfigHeight, r.ConfigWidth, r.Src})
 			}
-			displayNodes = append(displayNodes, DisplayNode{DisplayResources:tempDisplayResources,
-				VideoProperties:VideoProperties{IsVideo:false,}})
+			displayNodes = append(displayNodes, DisplayNode{DisplayResources: tempDisplayResources,
+				VideoProperties: VideoProperties{IsVideo: false}})
 		}
-		return &FetchedResource{IsVideo: false, Images: displayNodes,NodeProperties:NodeProperties{ShortCode:shortCode}}, nil
+		return &FetchedResource{IsVideo: false, Images: displayNodes, NodeProperties: NodeProperties{ShortCode: shortCode}}, nil
 	}
 	//video
 	return &FetchedResource{IsVideo: true, Video: VideoDisplayResource{ThumbnailSrc: shortcodeMedia.ThumbnailSrc,
-		VideoDuration: shortcodeMedia.VideoDuration, VideoURL: shortcodeMedia.VideoURL},NodeProperties:NodeProperties{ShortCode:shortCode}}, nil
+		VideoDuration: shortcodeMedia.VideoDuration, VideoURL: shortcodeMedia.VideoURL}, NodeProperties: NodeProperties{ShortCode: shortCode}}, nil
 
 	//json.NewDecoder().Decode(v)
 	//return &displayResources,nil
@@ -127,10 +127,9 @@ func (downloader *InsResourceDownloader) FetchInsShareDataResources() (*FetchedR
 //FetchedResource :fetched resource object
 type FetchedResource struct {
 	IsVideo bool                 `json:"is_video"`
-	Images  []DisplayNode  `json:"images"`
+	Images  []DisplayNode        `json:"images"`
 	Video   VideoDisplayResource `json:"video"`
 	NodeProperties
-
 }
 
 //ToJSONString get FetchedResource json string
@@ -150,6 +149,7 @@ type DisplayNode struct {
 	DisplayResources []DisplayResource `json:"display_resources"`
 	VideoProperties
 }
+
 //DisplayResource :image resource
 type DisplayResource struct {
 	ConfigHeight int    `json:"config_height"`
@@ -203,17 +203,18 @@ type Node struct {
 	VideoProperties
 }
 
-type NodeProperties struct{
+type NodeProperties struct {
 	//Dimensions string `json:"dimensions"`
 	ShortCode string `json:"shortcode"`
-	TypeName string `json:"__typename"` //"GraphVideo","GraphImage"
+	TypeName  string `json:"__typename"` //"GraphVideo","GraphImage"
 }
+
 // video 属性
-type VideoProperties struct{
-	IsVideo               bool                  `json:"is_video"`
-	VideoURL              string                `json:"video_url"`
-	ThumbnailSrc          string                `json:"thumbnail_src"`
-	VideoDuration         float32               `json:"video_duration"`
+type VideoProperties struct {
+	IsVideo       bool    `json:"is_video"`
+	VideoURL      string  `json:"video_url"`
+	ThumbnailSrc  string  `json:"thumbnail_src"`
+	VideoDuration float32 `json:"video_duration"`
 	NodeProperties
 }
 
@@ -221,6 +222,7 @@ const (
 	NodeTypeName_GraphVideo = "GraphVideo"
 	NodeTypeName_GraphImage = "GraphImage"
 )
+
 //Main Test main
 func Main() {
 	//single image

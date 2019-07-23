@@ -75,13 +75,14 @@
     <div  class="container border1px radio4px">
         <label class="title radio4px">QRCode Here</label>
         <div id="codeContainer" class="code_container">
-            <!--http://www.20dot.com/static/UVJDT0RFXzE0OTYyMDA3Mjg=.png-->
+            <!--/static/UVJDT0RFXzE0OTYyMDA3Mjg=.png-->
             <div class="tip_container">no data input !</div>
         </div>
     </div>
 </div>
-<script type="text/javascript" src="http://www.20dot.com/js/jquery.min.js"></script>
+<script type="text/javascript" src="/js/jquery.min.js"></script>
 <script>
+    var host = "https://kangspace.org/";
     $(function () {
         getCodeListener();
     });
@@ -101,7 +102,7 @@
     }
     function getCode_(data) {
         if(!data) return;
-        var url = "http://20dot.com/qrcode?_="+(new Date().getTime())+"&data="+data;
+        var url = host+"/qrcode?_="+(new Date().getTime())+"&data="+data;
         $("#remoteIfm").attr("src",url);
     }
 
@@ -113,7 +114,7 @@
     function getCode(data) {
         if(!data) return;
         $.ajax({//20dot.com
-            url:"http://127.0.0.1:8881/qrcode?_="+(new Date().getTime()),
+            url:host+"/qrcode?_="+(new Date().getTime()),
             data:{data:data},
             type:"POST",
             dataType:"json",
@@ -121,8 +122,8 @@
 //            jsonpCallback:"appendQRCode",
             success:function (data) {
                 console.log(data);
-                if(data && data.Code == 1){
-                    appendQRCode(data.Data.name)
+                if(data && data.code == 1){
+                    appendQRCode(data.data.name)
                 }
             },
             error:function (x,s,e) {
@@ -133,7 +134,7 @@
     }
     function appendQRCode(data){
         if(!data) return;
-        var img = "<img class='qrImg' src='http://www.20dot.com/static/"+data+"' title='"+data+"' onerror='imgErr()'/>"
+        var img = "<img class='qrImg' src='/static/"+data+"' title='"+data+"' onerror='imgErr()'/>"
         $("#codeContainer").html(img);
     }
     function appendNullImg(){

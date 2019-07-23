@@ -3,16 +3,20 @@
 // author: Kang
 // date: 2017-05-30
 // run: qrserver [8881]
+// file will be save on /usr/qrcode/ dictionary
 package main
 
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hummingbird/libs/file"
@@ -26,9 +30,9 @@ var addr = ":8881"
 
 //return obj ,fields first character must uppercase
 type ReturnObject struct {
-	Code string
-	Msg  string
-	Data map[string]string
+	Code string            `json:"code"`
+	Msg  string            `json:"msg"`
+	Data map[string]string `json:"data"`
 }
 
 func main() {
@@ -49,21 +53,36 @@ func main() {
 
 var path = "/usr/qrcode/"
 
+const (
+	ServiceUsageQrCode = "\\qrcode \t e.g.:\\qrcode?data=test&s=200&rt=json \n" +
+		"         \t data: data of need to generate qrcode ,max length is TODO \n" +
+		"         \t s: qrcode image size,value is int,default is 200 \n" +
+		"         \t rt: json/png ,result type,defalut is png   \n"
+)
+
 //default
 func welcomeHandle(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	w.Write([]byte("server started !"))
+	w.Write([]byte("server started !\n\n"))
+	w.Write([]byte("service list :\n"))
+	w.Write([]byte(ServiceUsageQrCode))
 }
 
 //qr处理
 func qrHandle(w http.ResponseWriter, req *http.Request) {
+	//set CROS
 	webserver.SetAccessControlAllowOrgin(w)
 	// type :d return data
 	data := req.FormValue("data")
-	//200
-	inputSize := req.FormValue("size")
+	//default is 200
+	inputSize := req.FormValue("s")
+	//default is png
+	returnType := req.FormValue("rt")
 	size := 200
-	if b, _ := regexp.MatchString("^[0-9]{2,3}$", inputSize); b {
+	if len(strings.Trim(returnType, " ")) < 1 {
+		returnType = "png"
+	}
+	if b, _ := regexp.MatchString("^[0-9]{2,4}$", inputSize); b {
 		if size_, err := strconv.ParseInt(inputSize, 10, 32); err == nil {
 			size = int(size_)
 		} else {
@@ -72,25 +91,19 @@ func qrHandle(w http.ResponseWriter, req *http.Request) {
 	}
 	fmt.Println("size:", size)
 	var msg string
-	if data != "" {
+	if len(data) > 0 {
 		fmt.Println("data:", data)
 		startTime := time.Now()
 		nowTime := strconv.FormatInt(startTime.UnixNano(), 10)
-		name := base64.StdEncoding.EncodeToString([]byte("QRCODE_"+nowTime)) + ".png"
+		name := base64.StdEncoding.EncodeToString([]byte("QRCODE_SIZE_"+strconv.Itoa(size)+"_"+nowTime)) + ".png"
 		fmt.Println("name:", name, " ,time:", nowTime)
 		if err := genQrCode(file.MyFile{path, name}, data, size); err == nil {
 			endTime := time.Now()
 			fmt.Println("name:", name, " ,cost:", util.CostTimeCalc(startTime, endTime))
-			data := map[string]string{
-				"name": name,
-			}
-			obj := ReturnObject{"1", "成功", data}
-			fmt.Println("obj:", obj)
-			if j, err_ := json.Marshal(obj); err_ == nil {
-				w.Write(j)
+			if err := writeHandle(w, returnType, name, path+name); err == nil {
 				return
 			} else {
-				fmt.Println("qrHandle json parse error")
+				msg = err.Error()
 			}
 		} else {
 			if qrcode.TooMuchCharactersError == err {
@@ -101,10 +114,45 @@ func qrHandle(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(500)
 	} else {
 		w.WriteHeader(500)
-		msg = "qrHandle no data"
+		msg = "error: data is null!\n\n"
 		fmt.Println("no data")
 	}
 	w.Write([]byte(msg))
+	writeUseage(w)
+}
+
+func writeUseage(w http.ResponseWriter) {
+	webserver.SetContentTypeHtml(w)
+	w.Write([]byte("Usage :\n"))
+	w.Write([]byte(ServiceUsageQrCode))
+}
+
+//输出处理
+//w response
+//rt returnType: json/png
+func writeHandle(w http.ResponseWriter, rt string, name string, filepath string) error {
+	if rt == "json" {
+		webserver.SetContentTypeJson(w)
+		data := map[string]string{
+			"name": name,
+		}
+		obj := ReturnObject{"1", "sucsses", data}
+		fmt.Println("obj:", obj)
+		if j, err_ := json.Marshal(obj); err_ == nil {
+			w.Write(j)
+			return nil
+		}
+		return errors.New("qrHandle json parse error")
+	}
+	if rt == "png" {
+		webserver.SetContentTypePng(w)
+		if bytes, err := ioutil.ReadFile(filepath); err == nil {
+			w.Write(bytes)
+			return nil
+		}
+		return errors.New("qrcode file not exists")
+	}
+	return errors.New("not support opeation")
 }
 
 //生产qrcode图片

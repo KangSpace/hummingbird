@@ -441,8 +441,8 @@ func EncodeToPng(qrCode *QRCode, w io.Writer) error {
 
 //BarCode转为image.Image
 //输出指定大小图片时,必须调用该方法
-func ToImage(qrcode BarCode, dimension int) (image.Image, error) {
-	qrcode_, destImgSize, err := Scale(qrcode, dimension, dimension)
+func ToImage(qrcode BarCode, dimension int, isFill bool) (image.Image, error) {
+	qrcode_, destImgSize, err := Scale(qrcode, dimension, dimension, isFill)
 	if err != nil {
 		fmt.Println("ERR ToImage error:", err)
 		return nil, err
@@ -465,7 +465,7 @@ func ToImage(qrcode BarCode, dimension int) (image.Image, error) {
 //BarCode to png
 //dimension: 尺寸
 func ToPng(qrcode BarCode, dimension int, w io.Writer) error {
-	if qrcode_, err := ToImage(qrcode, dimension); err != nil {
+	if qrcode_, err := ToImage(qrcode, dimension, true); err != nil {
 		return err
 	} else {
 		return png.Encode(w, qrcode_)

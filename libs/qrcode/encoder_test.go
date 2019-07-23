@@ -23,7 +23,7 @@ func ExampleNumericEncode() {
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		qrcode, err = Scale(qrcode, 300, 300)
+		qrcode, _, err = Scale(qrcode, 300, 300, false)
 		if err == nil {
 			png.Encode(f, qrcode)
 		} else {
@@ -41,7 +41,7 @@ func ExampleAlphaNumericEncode() {
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		qrcode, err = Scale(qrcode, 300, 300)
+		qrcode, _, err = Scale(qrcode, 300, 300, false)
 		if err == nil {
 			png.Encode(f, qrcode)
 		} else {
@@ -59,7 +59,7 @@ func ExampleUnicodeEncodeEncode() {
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		qrcode, err = Scale(qrcode, 300, 300)
+		qrcode, _, err = Scale(qrcode, 300, 300, false)
 		if err == nil {
 			png.Encode(f, qrcode)
 		} else {
