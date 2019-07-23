@@ -54,10 +54,11 @@ func main() {
 var path = "/usr/qrcode/"
 
 const (
-	ServiceUsageQrCode = "\\qrcode \t e.g.:\\qrcode?data=test&s=200&rt=json \n" +
-		"         \t data: data of need to generate qrcode ,max length is TODO \n" +
-		"         \t s: qrcode image size,value is int,default is 200 \n" +
+	ServiceUsageQrCode = "/qrcode \t e.g.:/qrcode?data=test&s=200&rt=json \n" +
+		"         \t data: data for need to generate qrcode ,max length is 7089 ,refer to https://en.wikipedia.org/wiki/QR_code \n" +
+		"         \t s: size for qrcode image ,int value,default is 200 \n" +
 		"         \t rt: json/png ,result type,defalut is png   \n"
+	QRCodeMaxLength = 7089
 )
 
 //default
@@ -91,11 +92,11 @@ func qrHandle(w http.ResponseWriter, req *http.Request) {
 	}
 	fmt.Println("size:", size)
 	var msg string
-	if len(data) > 0 {
+	if len(data) > 0 && len(data) <= QRCodeMaxLength {
 		fmt.Println("data:", data)
 		startTime := time.Now()
 		nowTime := strconv.FormatInt(startTime.UnixNano(), 10)
-		name := base64.StdEncoding.EncodeToString([]byte("QRCODE_SIZE_"+strconv.Itoa(size)+"_"+nowTime)) + ".png"
+		name := strings.Replace(base64.StdEncoding.EncodeToString([]byte("QRCODE_SIZE_"+strconv.Itoa(size)+"_"+nowTime)), "=", "", -1) + ".png"
 		fmt.Println("name:", name, " ,time:", nowTime)
 		if err := genQrCode(file.MyFile{path, name}, data, size); err == nil {
 			endTime := time.Now()
@@ -111,18 +112,22 @@ func qrHandle(w http.ResponseWriter, req *http.Request) {
 			}
 			fmt.Println("genQrCode error:", err)
 		}
-		w.WriteHeader(500)
-	} else {
-		w.WriteHeader(500)
+	}
+	if len(data) < 1 {
 		msg = "error: data is null!\n\n"
 		fmt.Println("no data")
 	}
+	if len(data) > QRCodeMaxLength {
+		msg = "error: data max length is " + strconv.Itoa(QRCodeMaxLength) + "!\n\n"
+		fmt.Println("no data")
+	}
+	webserver.SetContentTypeHtml(w)
+	w.WriteHeader(500)
 	w.Write([]byte(msg))
 	writeUseage(w)
 }
 
 func writeUseage(w http.ResponseWriter) {
-	webserver.SetContentTypeHtml(w)
 	w.Write([]byte("Usage :\n"))
 	w.Write([]byte(ServiceUsageQrCode))
 }

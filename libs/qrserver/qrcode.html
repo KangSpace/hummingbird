@@ -102,7 +102,7 @@
     }
     function getCode_(data) {
         if(!data) return;
-        var url = host+"/qrcode?_="+(new Date().getTime())+"&data="+data;
+        var url = host+"/qrcode?_="+(new Date().getTime())+"&data="+data+"&rt=json";
         $("#remoteIfm").attr("src",url);
     }
 
@@ -115,7 +115,7 @@
         if(!data) return;
         $.ajax({//20dot.com
             url:host+"/qrcode?_="+(new Date().getTime()),
-            data:{data:data},
+            data:{data:data,rt:"json"},
             type:"POST",
             dataType:"json",
 //            jsonp:"appendQRCode",
