@@ -32,7 +32,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/hummingbird/libs/util"
+	"hummingbird/libs/util"
 )
 
 func Buddy(start, limit int) []int {

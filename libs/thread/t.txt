@@ -101003,4 +101003,4 @@ t 999
 end
 --- PASS: TestRun (0.33s)
 PASS
-ok  	github.com/hummingbird/thread	0.620s
+ok  	hummingbird/thread	0.620s

@@ -11,7 +11,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/KangSpace/gqrcode"
+	"github.com/KangSpace/gqrcode/core/output"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -19,10 +22,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hummingbird/libs/file"
-	"github.com/hummingbird/libs/qrcode"
-	"github.com/hummingbird/libs/util"
-	"github.com/hummingbird/libs/webserver"
+	"hummingbird/libs/file"
+	"hummingbird/libs/util"
+	"hummingbird/libs/webserver"
 )
 
 //default port 8881
@@ -51,7 +53,7 @@ func main() {
 	server.Run(handles)
 }
 
-var path = "/usr/qrcode/"
+var path = os.Getenv("HOME") + "/usr/qrcode"
 
 const (
 	ServiceUsageQrCode = "/qrcode \t e.g.:/qrcode?data=test&s=200&rt=json \n" +
@@ -98,7 +100,7 @@ func qrHandle(w http.ResponseWriter, req *http.Request) {
 		nowTime := strconv.FormatInt(startTime.UnixNano(), 10)
 		name := strings.Replace(base64.StdEncoding.EncodeToString([]byte("QRCODE_SIZE_"+strconv.Itoa(size)+"_"+nowTime)), "=", "", -1) + ".png"
 		fmt.Println("name:", name, " ,time:", nowTime)
-		if err := genQrCode(file.MyFile{path, name}, data, size); err == nil {
+		if err := genQrCode(file.MyFile{Path: path, FileName: name}, data, size); err == nil {
 			endTime := time.Now()
 			fmt.Println("name:", name, " ,cost:", util.CostTimeCalc(startTime, endTime))
 			if err := writeHandle(w, returnType, name, path+name); err == nil {
@@ -107,9 +109,6 @@ func qrHandle(w http.ResponseWriter, req *http.Request) {
 				msg = err.Error()
 			}
 		} else {
-			if qrcode.TooMuchCharactersError == err {
-				msg = err.Error()
-			}
 			fmt.Println("genQrCode error:", err)
 		}
 	}
@@ -157,38 +156,38 @@ func writeHandle(w http.ResponseWriter, rt string, name string, filepath string)
 		}
 		return errors.New("qrcode file not exists")
 	}
-	return errors.New("not support opeation")
+	return errors.New("not support operation")
+}
+
+func mkdirIfAbsent(f file.MyFile, run func(onError func(error))) error {
+	if err := file.CreateDir(f); err == nil {
+		Try(func() {
+			run(func(runErr error) {
+				err = runErr
+			})
+		}, func(e interface{}) error {
+			defer os.Remove(f.FilePath())
+			fmt.Println("ERR- Remove:", f.FilePath())
+			return err
+		})
+	} else {
+		return err
+	}
+	return nil
 }
 
 //生产qrcode图片
 //name: qr图片名称
 //path: qr图片路径
 func genQrCode(f file.MyFile, content string, size int) error {
-	if err := file.CreateDir(f); err == nil {
-		if file, err := os.OpenFile(f.FilePath(), os.O_CREATE|os.O_RDWR, 0666); err == nil {
-			defer file.Close()
-			Try(func() {
-				if err = qrcode.EncodeToPng((qrcode.NewQrCode(size, content)), file); err != nil {
-					fmt.Println("ERROR genQrCode qrcode.EncodeToPng error:", err)
-					file.Close()
-					defer os.Remove(f.FilePath())
-				}
-			}, func(e interface{}) error {
-				file.Close()
-				defer os.Remove(f.FilePath())
-				fmt.Println("ERR- Remove:", f.FilePath())
-				err = qrcode.EncodeError
-				return err
-			})
-			return err
-
-		} else {
-			return err
+	return mkdirIfAbsent(f, func(onError func(error)) {
+		qrcode, _ := gqrcode.NewQRCodeAutoQuiet(content)
+		err := qrcode.Encode(output.NewPNGOutput(size), f.FilePath())
+		log.Println(f.FilePath())
+		if err != nil {
+			onError(err)
 		}
-	} else {
-		return err
-	}
-	return nil
+	})
 }
 
 //实现 try catch 例子

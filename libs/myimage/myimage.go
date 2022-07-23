@@ -10,8 +10,8 @@ import (
 	"image/draw"
 	"time"
 
-	"github.com/hummingbird/libs/util"
 	"code.google.com/p/graphics-go/graphics"
+	"hummingbird/libs/util"
 )
 
 //等比例缩放

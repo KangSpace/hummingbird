@@ -80,9 +80,10 @@
         </div>
     </div>
 </div>
-<script type="text/javascript" src="/js/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
 <script>
-    var host = "https://kangspace.org/";
+    // var host = "https://kangspace.org/";
+    var host = "http://localhost:8881";
     $(function () {
         getCodeListener();
     });
@@ -113,7 +114,7 @@
     }
     function getCode(data) {
         if(!data) return;
-        $.ajax({//20dot.com
+        $.ajax({
             url:host+"/qrcode?_="+(new Date().getTime()),
             data:{data:data,rt:"json"},
             type:"POST",
