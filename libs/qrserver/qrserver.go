@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/KangSpace/gqrcode"
 	"github.com/KangSpace/gqrcode/core/output"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -81,8 +82,9 @@ func qrHandle(w http.ResponseWriter, req *http.Request) {
 	inputSize := req.FormValue("s")
 	//default is png
 	returnType := req.FormValue("rt")
-	size := 200
-	if len(strings.Trim(returnType, " ")) < 1 {
+	size := 400
+	isJsonResp := returnType == "json"
+	if !isJsonResp && len(strings.Trim(returnType, " ")) < 1 {
 		returnType = "png"
 	}
 	if b, _ := regexp.MatchString("^[0-9]{2,4}$", inputSize); b {
@@ -92,7 +94,7 @@ func qrHandle(w http.ResponseWriter, req *http.Request) {
 			fmt.Println("ParseInt error:", err)
 		}
 	}
-	fmt.Println("size:", size)
+	fmt.Println("size:", size, " , returnType:", returnType)
 	var msg string
 	if len(data) > 0 && len(data) <= QRCodeMaxLength {
 		fmt.Println("data:", data)
@@ -100,16 +102,25 @@ func qrHandle(w http.ResponseWriter, req *http.Request) {
 		nowTime := strconv.FormatInt(startTime.UnixNano(), 10)
 		name := strings.Replace(base64.StdEncoding.EncodeToString([]byte("QRCODE_SIZE_"+strconv.Itoa(size)+"_"+nowTime)), "=", "", -1) + ".png"
 		fmt.Println("name:", name, " ,time:", nowTime)
-		if err := genQrCode(file.MyFile{Path: path, FileName: name}, data, size); err == nil {
-			endTime := time.Now()
-			fmt.Println("name:", name, " ,cost:", util.CostTimeCalc(startTime, endTime))
-			if err := writeHandle(w, returnType, name, path+name); err == nil {
+		if returnType == "json" {
+			destFile := file.MyFile{Path: path, FileName: name}
+			if err := genQrCode(destFile, data, size); err == nil {
+				endTime := time.Now()
+				fmt.Println("name:", name, " ,cost:", util.CostTimeCalc(startTime, endTime))
+				if err := writeHandle(w, returnType, name, destFile.FilePath()); err == nil {
+					return
+				} else {
+					msg = err.Error()
+				}
+			} else {
+				fmt.Println("genQrCode error:", err)
+			}
+		} else {
+			if err := writeImageHandle(w, data, size); err == nil {
 				return
 			} else {
 				msg = err.Error()
 			}
-		} else {
-			fmt.Println("genQrCode error:", err)
 		}
 	}
 	if len(data) < 1 {
@@ -123,10 +134,10 @@ func qrHandle(w http.ResponseWriter, req *http.Request) {
 	webserver.SetContentTypeHtml(w)
 	w.WriteHeader(500)
 	w.Write([]byte(msg))
-	writeUseage(w)
+	writeUsage(w)
 }
 
-func writeUseage(w http.ResponseWriter) {
+func writeUsage(w http.ResponseWriter) {
 	w.Write([]byte("Usage :\n"))
 	w.Write([]byte(ServiceUsageQrCode))
 }
@@ -140,23 +151,27 @@ func writeHandle(w http.ResponseWriter, rt string, name string, filepath string)
 		data := map[string]string{
 			"name": name,
 		}
-		obj := ReturnObject{"1", "sucsses", data}
+		obj := ReturnObject{"1", "success", data}
 		fmt.Println("obj:", obj)
 		if j, err_ := json.Marshal(obj); err_ == nil {
 			w.Write(j)
 			return nil
 		}
 		return errors.New("qrHandle json parse error")
-	}
-	if rt == "png" {
+	} else {
 		webserver.SetContentTypePng(w)
 		if bytes, err := ioutil.ReadFile(filepath); err == nil {
 			w.Write(bytes)
 			return nil
 		}
-		return errors.New("qrcode file not exists")
+		return errors.New("qrcode file not exists! ")
 	}
-	return errors.New("not support operation")
+	return errors.New("not support operation! ")
+}
+
+func writeImageHandle(w http.ResponseWriter, data string, size int) error {
+	webserver.SetContentTypePng(w)
+	return genQrCodeToWriter(w, data, size)
 }
 
 func mkdirIfAbsent(f file.MyFile, run func(onError func(error))) error {
@@ -188,6 +203,11 @@ func genQrCode(f file.MyFile, content string, size int) error {
 			onError(err)
 		}
 	})
+}
+func genQrCodeToWriter(w io.Writer, content string, size int) error {
+	qrcode, _ := gqrcode.NewQRCodeAutoQuiet(content)
+	err := qrcode.EncodeToWriter(output.NewPNGOutput(size), w)
+	return err
 }
 
 //实现 try catch 例子
